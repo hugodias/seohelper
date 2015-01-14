@@ -1,0 +1,22 @@
+body {
+  padding: 50px;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+a {
+  color: #00B7FF;
+}
+
+.mainform{}
+.mainform label{
+  display: block;
+  font-weight: bold;
+  font-size: 20px;
+  margin: 0 0 20px 0;
+}
+.mainform input{
+  height: 30px;
+  border: 3px dashed red;
+  width: 300px;
+  font-size: 20px;
+}
