@@ -1,7 +1,25 @@
 extends layout
 
 block content
-  h1= title
-  p Check your website content
+  .statistics
+    h4 Keyword: #{keyword}
+    strong Num Occurrences of keyword #{num_occurrences}
+    br
+    strong Num words in body #{num_words}
+    br
+    strong Density #{density}%
+    br
+    strong Internal Links: #{links.internal}
+    br
+    strong External Links: #{links.external}
+    br
+    strong Points #{points}
+    .progress
+      .progress-bar.progress-bar-success(role='progressbar', aria-valuenow=points, aria-valuemin='0', aria-valuemax='100', style="width: " + points + "%;")
+          span.sr-only #{points}% Complete    
 
-  p= content
+  h1!= title  
+  hr
+  h3 Body
+
+  pre!= content
