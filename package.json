@@ -10,6 +10,7 @@
     "jade": "*",
     "unfluff": "^0.10.0",
     "reload": "^0.1.0",
-    "request": "^2.51.0"
+    "request": "^2.51.0",
+    "coffee-script": "^1.8.0"
   }
 }
