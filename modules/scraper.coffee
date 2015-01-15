@@ -1,119 +1,132 @@
 request = require("request")
 extractor = require("unfluff")
 
-extractDomain = (url) ->
-  domain = undefined
-  #find & remove protocol (http, ftp, etc.) and get domain
-  if url.indexOf("://") > -1
-    domain = url.split("/")[2]
-  else
-    domain = url.split("/")[0]  
-  #find & remove port number
-  domain = domain.split(":")[0]
-  domain
+class Scraper
+  constructor: (@url, @keyword) ->
+    @internal = 0
+    @external = 0
+    @density = 0
+    @ocurrences = 0
+    @num_words = 0
+    @points = 0
+    @title = null
+    @body = null
 
-countOcurrences = (str, value) ->
-  regExp = new RegExp(value, "gi")
-  (if str.match(regExp) then str.match(regExp).length else 0)
+  extractDomain: (url) ->
+    domain = undefined
+    #find & remove protocol (http, ftp, etc.) and get domain
+    if url.indexOf("://") > -1
+      domain = url.split("/")[2]
+    else
+      domain = url.split("/")[0]  
+    #find & remove port number
+    domain.split(":")[0]
 
-getNumExternalLinks = (str, url) ->
-  external = 0
-  internal = 0
-  geturl = /[-a-zA-Z0-9@:%_\+.~#?&\/\/=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)?/g
-  domain = extractDomain(url)
-  urls = str.match(geturl)
-  if urls.length > 0
-    i = 0
+  countWords = (sentence) ->
+    index = {}
+    total = 0
+    words = sentence.replace(/[.,?!;()"'-]/g, " ").replace(/\s+/g, " ").toLowerCase().split(" ")
+    words.forEach (word) ->
+      index[word] = 0  unless index.hasOwnProperty(word)
+      index[word]++
+      @num_words++
+      return
 
-    while i < urls.length
-      (if not urls[i].indexOf(domain) then external++ else internal++)
-      i++
-  internal: internal
-  external: external
-
-calculateDensity = (num_words, num_occurrences) ->
-  parseFloat(num_occurrences / num_words * 100).toFixed 2
-
-bodyProcessing = (str, keyword) ->
-  
-  # Highlight keyword in body
-  body = nl2br(str)
-  body = highlightKeywords(str, keyword)
-  
-  # Num words in body
-  num_words = countWords(stripHtml(str))
-  
-  # Retrieve num ocurrences of keyword from body
-  num_occurrences = countOcurrences(str, keyword)
-  
-  # Density
-  density = calculateDensity(num_words, num_occurrences)
-
-  body: body
-  num_words: num_words
-  density: density
-  num_occurrences: num_occurrences
-
-stripHtml = (str) ->
-  str.replace /(<([^>]+)>)/g, ""
-
-countWords = (sentence) ->
-  index = {}
-  total = 0
-  words = sentence.replace(/[.,?!;()"'-]/g, " ").replace(/\s+/g, " ").toLowerCase().split(" ")
-  words.forEach (word) ->
-    index[word] = 0  unless index.hasOwnProperty(word)
-    index[word]++
-    total++
+  countOcurrences: (str, value) ->
+    regExp = new RegExp(value, "gi")
+    @ocurrences = (if str.match(regExp) then str.match(regExp).length else 0)
     return
 
-  total
+  nl2br = (str) ->
+    str.replace "\n", "<br/>"
 
-nl2br = (str) ->
-  str.replace "\n", "<br/>"
+  stripHtml = (str) ->
+    str.replace /(<([^>]+)>)/g, ""
 
-getContent = (url, callback) ->
-  request url, (error, response, body) ->
-    if not error and response.statusCode is 200
-      analysis = extractor(body)
-      callback analysis
+  extractNumExternalLinks: (str) ->
+    geturl = /[-a-zA-Z0-9@:%_\+.~#?&\/\/=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)?/g
+    domain = @extractDomain
+    urls = str.match(geturl)
+    if urls.length > 0
+      i = 0
+
+      while i < urls.length
+        (if not urls[i].indexOf(domain) then @external++ else @internal++)
+        i++
+
+  calculateDensity: (num_words, num_occurrences) ->
+    @density = parseFloat(num_occurrences / num_words * 100).toFixed 2
     return
 
-  return
+  highlightKeywords: (str, value) ->
+    str.replace new RegExp(value, "gi"), "<span class=\"highlight\">$&</span>"
 
-highlightKeywords = (str, value) ->
-  str.replace new RegExp(value, "gi"), "<span class=\"highlight\">$&</span>"
+  calculatePoints: ->
+    @points += 10  if @num_occurrences > 4
 
-calculatePoints = (bodyObj, title, keyword, num_links) ->
-  points = 0
-  points += 10  if bodyObj.num_occurrences > 4
-  if bodyObj.num_words > 200 and bodyObj.num_words <= 400
-    points += 20
-  else if bodyObj.num_words <= 1000
-    points += 30
-  else
-    points += 50
-  points += 5  if num_links.internal > 3
-  points += 7  if num_links.external > 0
-  points += 30  if countOcurrences(title, keyword) > 0
-  points += 15  if bodyObj.density > 2
-  points
+    if @num_words > 200 and @num_words <= 400
+      @points += 20
+    else if @num_words <= 1000
+      @points += 30
+    else
+      @points += 50
+
+    @points += 5  if @internal > 3
+
+    @points += 7  if @external > 0
+
+    @points += 30  if @ocurrences > 0
+
+    @points += 15  if @density > 2
+
+  # Extract all information abount an URL using unfluff
+  getContent = (url, callback) ->
+    request url, (error, response, body) ->
+      if not error and response.statusCode is 200
+        analysis = extractor(body)
+        callback analysis
+      return
+
+    return
+  
+  process: ->
+    # Highlight keyword in body
+    @content = nl2br(@body)
+    @content = highlightKeywords(@content, @keyword)
+    
+    # Num words in body
+    countWords(stripHtml(@body))
+    
+    # Retrieve num ocurrences of keyword from body
+    countOcurrences(@body, @keyword)
+    
+    # Density
+    calculateDensity(num_words, num_occurrences)
+
+    # Calculate points
+    calculatePoints()
+
+  analyse: (callback) ->
+    @getContent url, (response) ->
+      @body = response.text
+      @title = response.title
+
+      @process()
+
+      callback
+        title: @title
+        body: @content
+        links: 
+          internal: @internal
+          external: @external
+        density: @density
+        num_occurrences: @num_occurrences
+        num_words: @num_words
+        points: @points
 
 exports.extract = (url, keyword, callback) ->
-  getContent url, (content) ->
-    title = highlightKeywords(content.title, keyword)
-    bodyObj = bodyProcessing(content.text, keyword)
-    links = getNumExternalLinks(content.text, url)
-    points = calculatePoints(bodyObj, title, keyword, links)
-    callback
-      title: title
-      body: bodyObj.body
-      links: links
-      density: bodyObj.density
-      num_occurrences: bodyObj.num_occurrences
-      num_words: bodyObj.num_words
-      points: points
+  scraper = new Scraper(url, keyword)
 
-    return
+  scraper.analyse(callback)
 
   return
