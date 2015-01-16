@@ -3,7 +3,9 @@ extends layout
 block content
   .statistics
     h4 Keyword: #{keyword}
-    strong Num Occurrences of keyword #{num_occurrences}
+    strong Keyword present in title? #{occurrences.title}
+    br
+    strong Num Occurrences of keyword #{occurrences.body}
     br
     strong Num words in body #{num_words}
     br

@@ -9,6 +9,7 @@ class Scraper
     @density = 0
     @ocurrences = 0
     @num_words = 0
+    @appears_on_title = false
     @points = 0
     @title = null
     @body = null
@@ -37,8 +38,7 @@ class Scraper
 
   countOcurrences: (str, value) ->
     regExp = new RegExp(value, "gi")
-    @ocurrences = (if str.match(regExp) then str.match(regExp).length else 0)
-    return
+    (if str.match(regExp) then str.match(regExp).length else 0)
 
   extractNumExternalLinks: (str) ->
     geturl = /[-a-zA-Z0-9@:%_\+.~#?&\/\/=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)?/g
@@ -62,26 +62,28 @@ class Scraper
     @content = str.replace "\n", "<br/>"
     @
 
-  highlightKeywords: (value) ->
-    @content.replace new RegExp(value, "gi"), "<span class=\"highlight\">$&</span>"
+  highlightKeywords: (value, src) ->
+    if src then content = src else content = @content
+    content.replace new RegExp(value, "gi"), "<span class=\"highlight\">$&</span>"
 
   calculatePoints: ->
+    # Number of occurrences from the keyword on page
     @points += 10  if @num_occurrences > 4
+    # Internal links are importante
+    @points += 5  if @links.internal > 3
+    # External links even more
+    @points += 7  if @links.external > 0
+    # Keyword on post title?
+    @points += 30  if @appears_on_title
+    # Density of keywords
+    @points += 15  if @density > 2
 
     if @num_words > 200 and @num_words <= 400
       @points += 20
     else if @num_words <= 1000
       @points += 30
     else
-      @points += 50
-
-    @points += 5  if @links.internal > 3
-
-    @points += 7  if @links.external > 0
-
-    @points += 30  if @ocurrences > 0
-
-    @points += 15  if @density > 2
+      @points += 50    
 
   # Extract all information abount an URL using unfluff
   getContent: (url, callback) ->
@@ -95,16 +97,19 @@ class Scraper
   
   process: (body, title) ->
     @body = body
-    @title = title
+    @title = @highlightKeywords(@keyword, title)
 
     # Highlight keyword in body
-    @content = @nl2br(@body).highlightKeywords(@keyword)
+    @content = @nl2br(@body).highlightKeywords(@keyword, null)
     
     # Num words in body
     @countWords(@stripHtml(body))
     
     # Retrieve num ocurrences of keyword from body
-    @countOcurrences(body, @keyword)
+    @ocurrences = @countOcurrences(body, @keyword)
+
+    # Retrieve num of occurrences of keyword from title
+    @appears_on_title = true if @countOcurrences(title, @keyword) > 0
 
     # Density
     @calculateDensity(@num_words, @ocurrences)
@@ -121,6 +126,7 @@ class Scraper
     links: @links
     density: @density
     ocurrences : @ocurrences 
+    appears_on_title: if @appears_on_title is true then "Yes" else "No"
     num_words: @num_words
     points: @points
     content: @content

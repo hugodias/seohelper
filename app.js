@@ -43,7 +43,10 @@ app.get('/analysis', function (req, res) {
       content: response.content, 
       density: response.density,
       links: response.links,
-      num_occurrences: response.num_occurrences, 
+      occurrences: {
+        body: response.ocurrences,
+        title: response.appears_on_title
+      }, 
       num_words: response.num_words,
       points: response.points });
   });
