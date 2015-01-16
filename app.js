@@ -40,7 +40,7 @@ app.get('/analysis', function (req, res) {
     res.render('analysis', { 
       keyword: keyword,
       title: response.title, 
-      content: response.body, 
+      content: response.content, 
       density: response.density,
       links: response.links,
       num_occurrences: response.num_occurrences, 
