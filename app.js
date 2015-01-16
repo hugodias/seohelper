@@ -43,6 +43,9 @@ app.get('/analysis', function (req, res) {
       content: response.content, 
       density: response.density,
       links: response.links,
+      canonicalLink: response.canonicalLink,
+      lang: response.lang,
+      description: response.description,
       occurrences: {
         body: response.ocurrences,
         title: response.appears_on_title

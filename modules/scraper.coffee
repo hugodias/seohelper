@@ -14,6 +14,9 @@ class Scraper
     @title = null
     @body = null
     @content = null
+    @canonicalLink = null
+    @lang = null
+    @description = null
 
   extractDomain: (url) ->
     domain = undefined
@@ -43,6 +46,7 @@ class Scraper
   extractNumExternalLinks: (str) ->
     geturl = /[-a-zA-Z0-9@:%_\+.~#?&\/\/=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)?/g
     domain = @extractDomain(@url)
+    console.log str
     urls = str.match(geturl)
     if urls.length > 0
       i = 0
@@ -68,7 +72,7 @@ class Scraper
 
   calculatePoints: ->
     # Number of occurrences from the keyword on page
-    @points += 10  if @num_occurrences > 4
+    @points += 5  if @num_occurrences > 4
     # Internal links are importante
     @points += 5  if @links.internal > 3
     # External links even more
@@ -78,12 +82,14 @@ class Scraper
     # Density of keywords
     @points += 15  if @density > 2
 
-    if @num_words > 200 and @num_words <= 400
+    if @num_words > 400 and @num_words < 700
+      @points += 10
+    else if @num_words < 1000
       @points += 20
-    else if @num_words <= 1000
-      @points += 30
+    else if @num_words < 1500
+      @points += 30    
     else
-      @points += 50    
+      @points += 40
 
   # Extract all information abount an URL using unfluff
   getContent: (url, callback) ->
@@ -95,27 +101,30 @@ class Scraper
 
     return
   
-  process: (body, title) ->
-    @body = body
-    @title = @highlightKeywords(@keyword, title)
+  process: (response) ->
+    @body = response.text
+    @title = @highlightKeywords(@keyword, response.title)
+    @description = @highlightKeywords(@keyword, response.description)
+    @canonicalLink = response.canonicalLink
+    @lang = response.lang
 
     # Highlight keyword in body
     @content = @nl2br(@body).highlightKeywords(@keyword, null)
     
     # Num words in body
-    @countWords(@stripHtml(body))
+    @countWords(@stripHtml(response.text))
     
     # Retrieve num ocurrences of keyword from body
-    @ocurrences = @countOcurrences(body, @keyword)
+    @ocurrences = @countOcurrences(response.text, @keyword)
 
     # Retrieve num of occurrences of keyword from title
-    @appears_on_title = true if @countOcurrences(title, @keyword) > 0
+    @appears_on_title = true if @countOcurrences(response.title, @keyword) > 0
 
     # Density
     @calculateDensity(@num_words, @ocurrences)
 
-    # Extract num links
-    @extractNumExternalLinks(body)
+    # Extract num links NOT WORKING
+    # @extractNumExternalLinks(body)
 
     # Calculate points
     @calculatePoints()
@@ -123,6 +132,9 @@ class Scraper
   responseObj: ->
     title: @title
     body: @body
+    description: @description
+    lang: @lang 
+    canonicalLink: @canonicalLink
     links: @links
     density: @density
     ocurrences : @ocurrences 
@@ -134,7 +146,7 @@ class Scraper
   analyse: (callback) ->
     _this = @
     @getContent @url, (response) ->
-      _this.process(response.text, response.title)
+      _this.process(response)
 
       callback _this.responseObj()
 

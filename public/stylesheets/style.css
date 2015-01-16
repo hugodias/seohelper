@@ -37,3 +37,13 @@ span.highlight{
   padding: 15px 10px;
   border: 3px dashed rgb(152, 152, 23);
 }
+
+span.result{
+  color: green;
+}
+
+.well{
+  background-color: rgb(255, 255, 221);
+  border: 2px solid #989727;
+  line-height: 25px;
+}
