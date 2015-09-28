@@ -37,19 +37,21 @@ app.get('/analysis', function (req, res) {
   var keyword = req.query.keyword;
 
   scraper.extract(url, keyword, function(response){
-    res.render('analysis', { 
+    res.render('analysis', {
       keyword: keyword,
-      title: response.title, 
-      content: response.content, 
+      title: response.title,
+      content: response.content,
       density: response.density,
       links: response.links,
+      keyword_in_url: response.keyword_in_url,
+      has_tags_related: response.has_tags_related,
       canonicalLink: response.canonicalLink,
       lang: response.lang,
       description: response.description,
       occurrences: {
         body: response.ocurrences,
         title: response.appears_on_title
-      }, 
+      },
       num_words: response.num_words,
       points: response.points });
   });
@@ -64,5 +66,3 @@ reload(server, app);
 server.listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));
 });
-
-

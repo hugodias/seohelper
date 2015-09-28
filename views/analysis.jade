@@ -2,6 +2,7 @@ extends layout
 
 block content
   .statistics
+    h2 Keyword: #{keyword}
     h4 Link: #{canonicalLink}
     h4 Lang: #{lang}
     h4.
@@ -13,6 +14,14 @@ block content
         | Keyword present in title? 
         span.result !{occurrences.title}
       br
+      strong
+        | Keyword present in url? 
+        span.result !{keyword_in_url}
+      br
+      strong
+        | Keyword present page tags? 
+        span.result !{has_tags_related}
+      br      
       strong 
         | Num Occurrences of keyword:  
         span.result !{occurrences.body}
