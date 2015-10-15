@@ -48,7 +48,6 @@ class Scraper
   extractNumExternalLinks: (str) ->
     geturl = /[-a-zA-Z0-9@:%_\+.~#?&\/\/=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)?/g
     domain = @extractDomain(@url)
-    console.log str
     urls = str.match(geturl)
     if urls.length > 0
       i = 0
@@ -69,8 +68,12 @@ class Scraper
     @
 
   highlightKeywords: (value, src) ->
-    if src then content = src else content = @content
-    content.replace new RegExp(value, "gi"), "<span class=\"highlight\">$&</span>"
+    if src?
+      content = src
+    else
+      content = @content
+    if content?
+      content.replace new RegExp(value, "gi"), "<span class=\"highlight\">$&</span>"
 
   calculatePoints: ->
     # Number of occurrences from the keyword on page
