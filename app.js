@@ -10,24 +10,49 @@ var http = require('http');
 var path = require('path');
 var reload = require('reload');
 var scraper = require('./modules/scraper');
+var bodyParser = require('body-parser');
 var app = express();
 
 // all environments
 app.set('port', process.env.PORT || 3000);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
-app.use(express.favicon());
-app.use(express.logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded());
-app.use(express.methodOverride());
-app.use(app.router);
 app.use(express.static(path.join(__dirname, 'public')));
 
-// development only
-if ('development' == app.get('env')) {
-  app.use(express.errorHandler());
-}
+// configure body parser
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+
+// create our router
+var router = express.Router();
+
+// Create the router to our api
+router.route('/:website/:keyword')
+.get(function(req,res){
+  var url = "http://" + req.params.website;
+  var keyword = req.params.keyword;
+  console.log(keyword)
+  scraper.extract(url, keyword, function(response){
+    res.json({
+      keyword: keyword,
+      title: response.title,
+      content: response.content,
+      density: response.density,
+      links: response.links,
+      keyword_in_url: response.keyword_in_url,
+      has_tags_related: response.has_tags_related,
+      canonicalLink: response.canonicalLink,
+      lang: response.lang,
+      description: response.description,
+      occurrences: {
+        body: response.ocurrences,
+        title: response.appears_on_title
+      },
+      num_words: response.num_words,
+      points: response.points });
+  });
+});
+
 
 app.get('/', routes.index);
 app.get('/users', user.list);
@@ -58,6 +83,7 @@ app.get('/analysis', function (req, res) {
 });
 
 
+app.use('/api', router);
 
 var server = http.createServer(app);
 
