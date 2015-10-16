@@ -119,7 +119,9 @@ class Scraper
     @body = response.text
     @title = @highlightKeywords(@keyword, response.title)
     @description = @highlightKeywords(@keyword, response.description)
-    @canonicalLink = response.canonicalLink
+    @canonicalLink = @highlightKeywords(
+      @to_slug(@keyword),
+      response.canonicalLink)
     @lang = response.lang
     @tags = response.tags
 
