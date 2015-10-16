@@ -31,20 +31,11 @@ class Scraper
     domain.split(":")[0]
 
   countWords: (sentence) ->
-    index = {}
-    total = 0
-    words = sentence.replace(/[.,?!;()"'-]/g, " ").replace(/\s+/g, " ").toLowerCase().split(" ")
-    words.forEach (word) ->
-      index[word] = 0  unless index.hasOwnProperty(word)
-      index[word]++
-      total++
-      return
-    @num_words = total
+    @num_words = sentence.split(/\s+\b/).length
 
   countOcurrences: (str, value) ->
     regExp = new RegExp(value, "gi")
     (if str.match(regExp) then str.match(regExp).length else 0)
-
 
   calculateDensity: (num_words, num_occurrences) ->
     @density = parseFloat(num_occurrences / num_words * 100).toFixed 2

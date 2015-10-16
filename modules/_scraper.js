@@ -39,18 +39,7 @@ Scraper = (function() {
   };
 
   Scraper.prototype.countWords = function(sentence) {
-    var index, total, words;
-    index = {};
-    total = 0;
-    words = sentence.replace(/[.,?!;()"'-]/g, " ").replace(/\s+/g, " ").toLowerCase().split(" ");
-    words.forEach(function(word) {
-      if (!index.hasOwnProperty(word)) {
-        index[word] = 0;
-      }
-      index[word]++;
-      total++;
-    });
-    return this.num_words = total;
+    return this.num_words = sentence.split(/\s+\b/).length;
   };
 
   Scraper.prototype.countOcurrences = function(str, value) {
