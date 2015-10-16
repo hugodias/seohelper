@@ -63,27 +63,6 @@ Scraper = (function() {
     }
   };
 
-  Scraper.prototype.extractNumExternalLinks = function(str) {
-    var domain, geturl, i, results, urls;
-    geturl = /[-a-zA-Z0-9@:%_\+.~#?&\/\/=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)?/g;
-    domain = this.extractDomain(this.url);
-    console.log(str);
-    urls = str.match(geturl);
-    if (urls.length > 0) {
-      i = 0;
-      results = [];
-      while (i < urls.length) {
-        if (!urls[i].indexOf(domain)) {
-          this.links.external++;
-        } else {
-          this.links.internal++;
-        }
-        results.push(i++);
-      }
-      return results;
-    }
-  };
-
   Scraper.prototype.calculateDensity = function(num_words, num_occurrences) {
     this.density = parseFloat(num_occurrences / num_words * 100).toFixed(2);
   };
@@ -97,14 +76,12 @@ Scraper = (function() {
     return this;
   };
 
-  Scraper.prototype.highlightKeywords = function(value, src) {
+  Scraper.prototype.highlightKeywords = function(keyword, src) {
     var content;
-    if (src) {
-      content = src;
-    } else {
-      content = this.content;
+    content = src || this.content;
+    if (content !== "undefined") {
+      return content.replace(new RegExp(keyword, "gi"), "<span class=\"highlight\">$&</span>");
     }
-    return content.replace(new RegExp(value, "gi"), "<span class=\"highlight\">$&</span>");
   };
 
   Scraper.prototype.calculatePoints = function() {

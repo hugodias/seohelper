@@ -45,16 +45,6 @@ class Scraper
     regExp = new RegExp(value, "gi")
     (if str.match(regExp) then str.match(regExp).length else 0)
 
-  extractNumExternalLinks: (str) ->
-    geturl = /[-a-zA-Z0-9@:%_\+.~#?&\/\/=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)?/g
-    domain = @extractDomain(@url)
-    urls = str.match(geturl)
-    if urls.length > 0
-      i = 0
-
-      while i < urls.length
-        (if not urls[i].indexOf(domain) then @links.external++ else @links.internal++)
-        i++
 
   calculateDensity: (num_words, num_occurrences) ->
     @density = parseFloat(num_occurrences / num_words * 100).toFixed 2
@@ -67,13 +57,15 @@ class Scraper
     @content = str.replace "\n", "<br/>"
     @
 
-  highlightKeywords: (value, src) ->
-    if src?
-      content = src
+  highlightKeywords: (keyword, src) ->
+    content = src or @content
+
+    if content isnt "undefined"
+      content.replace new RegExp(keyword, "gi"),
+       "<span class=\"highlight\">$&</span>"
     else
-      content = @content
-    if content?
-      content.replace new RegExp(value, "gi"), "<span class=\"highlight\">$&</span>"
+      content
+
 
   calculatePoints: ->
     # Number of occurrences from the keyword on page
@@ -151,9 +143,6 @@ class Scraper
 
     # Check if the keyword appers in the Tags
     @has_tags_related = true if @tags.indexOf(@to_slug(@keyword) > -1)
-
-    # Extract num links NOT WORKING
-    # @extractNumExternalLinks(body)
 
     # Calculate points
     @calculatePoints()
