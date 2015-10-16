@@ -51,7 +51,7 @@ class Scraper
   highlightKeywords: (keyword, src) ->
     content = src or @content
 
-    if content isnt "undefined" and content isnt null
+    if content?
       content.replace new RegExp(keyword, "gi"),
        "<span class=\"highlight\">$&</span>"
     else
