@@ -1,16 +1,17 @@
 {
-  "name": "application-name",
+  "name": "Seohelper",
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "start": "node app.js"
+  "start": "node app.js"
   },
   "dependencies": {
-    "express": "3.4.8",
+    "express": "4.0.0",
     "jade": "*",
     "unfluff": "^0.10.0",
     "reload": "^0.1.0",
     "request": "^2.51.0",
-    "coffee-script": "^1.8.0"
+    "coffee-script": "^1.8.0",
+    "body-parser": "~1.0.1"
   }
 }
