@@ -79,8 +79,10 @@ Scraper = (function() {
   Scraper.prototype.highlightKeywords = function(keyword, src) {
     var content;
     content = src || this.content;
-    if (content !== "undefined") {
+    if (content !== "undefined" && content !== null) {
       return content.replace(new RegExp(keyword, "gi"), "<span class=\"highlight\">$&</span>");
+    } else {
+      return content;
     }
   };
 
